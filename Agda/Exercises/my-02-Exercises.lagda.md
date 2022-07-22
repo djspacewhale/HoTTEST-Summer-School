@@ -136,10 +136,6 @@ Prove
 ```
 Hint: For the second goal use `tne` from the previous exercise
 
-
-
-
-
 ## Part II: `_≡_` for `Bool`
 
 **In this exercise we want to investigate what equality of booleans looks like.

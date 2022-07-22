@@ -1,4 +1,4 @@
-# Week 03 - Agda Exercises
+# Week 02 - Agda Exercises
 
 ## Please read before starting the exercises
 
@@ -20,7 +20,7 @@ to solve exercises.
 ```agda
 {-# OPTIONS --without-K --allow-unsolved-metas #-}
 
-module 03-Exercises where
+module my-03-Exercises where
 
 open import prelude hiding (_∼_)
 ```
@@ -29,11 +29,17 @@ open import prelude hiding (_∼_)
 
 It is often convenient to work with *pointwise equality* of functions, defined as follows.
 ```agda
+
 module _ {A : Type} {B : A → Type} where
   _∼_ : ((x : A) → B x) → ((x : A) → B x) → Type
   f ∼ g = ∀ x → f x ≡ g x
 ```
 An element of `f ∼ g` is usually called a homotopy.
+
+```agda
+  idtoiso : (f g : (a : A) → B a) → (p : f ≡ g) → f ∼ g
+  idtoiso f .f (refl .f) x = refl (f x)
+```
 
 ### Exercise 1 (⋆⋆)
 
@@ -43,20 +49,20 @@ can be inferred directly from the same operations on paths.
 Try to prove reflexivity, symmetry and transitivity of `_∼_` by filling these holes.
 ```agda
   ∼-refl : (f : (x : A) → B x) → f ∼ f
-  ∼-refl f = {!!}
+  ∼-refl f x = refl (f x)
 
   ∼-inv : (f g : (x : A) → B x) → (f ∼ g) → (g ∼ f)
-  ∼-inv f g H x = {!!}
+  ∼-inv f g H a = transport (λ x → g a ≡ f a) (H a) (sym (H a))
 
   ∼-concat : (f g h : (x : A) → B x) → f ∼ g → g ∼ h → f ∼ h
-  ∼-concat f g h H K x = {!!}
+  ∼-concat f g h H K a = transport (λ x → f a ≡ h a) (trans (H a) (K a)) (trans (H a) (K a))
 
   infix 0 _∼_
 ```
 
 ## Part II -- Isomorphisms
 
-A function `f : A → B` is called a *bijection* if there is a function `g : B → A` in the opposite direction such that `g ∘ f ∼ id` and `f ∘ g ∼ id`. Recall that `_∼_` is [pointwise equality](identity-type.lagda.md) and that `id` is the [identity function](products.lagda.md). This means that we can convert back and forth between the types `A` and `B` landing at the same element we started with, either from `A` or from `B`. In this case, we say that the types `A` and `B` are *isomorphic*, and we write `A ≅ B`. Bijections are also called type *isomorphisms*. We can define these concepts in Agda using [sum types](sums.lagda.md) or [records](https://agda.readthedocs.io/en/latest/language/record-types.html). We will adopt the latter, but we include both definitions for the sake of illustration.
+A function `f : A → B` is called a *bijection* if there is a function `g : B → A` in the opposite direction such that `g ∘ f ∼ id` and `f ∘ g ∼ id`. Recall that `_∼_` is [pointwise equality](identity-type.lagda.md) and that `id` is the [identity function](products.lagda.md). This means that we can convert back and forth between the types `A` and `B` landing at the same element with started with, either from `A` or from `B`. In this case, we say that the types `A` and `B` are *isomorphic*, and we write `A ≅ B`. Bijections are also called type *isomorphisms*. We can define these concepts in Agda using [sum types](sums.lagda.md) or [records](https://agda.readthedocs.io/en/latest/language/record-types.html). We will adopt the latter, but we include both definitions for the sake of illustration.
 Recall that we [defined](general-notation.lagda.md) the domain of a function `f : A → B` to be `A` and its codomain to be `B`.
 
 We adopt this definition of isomorphisms using records.
@@ -81,13 +87,13 @@ infix 0 _≅_
 
 ### Exercise 2 (⋆)
 
-Reformulate the same definition using Sigma-types.
+Reforumlate the same definition using Sigma-types.
 ```agda
 is-bijection' : {A B : Type} → (A → B) → Type
-is-bijection' f = {!!}
+is-bijection' f = Σ g ꞉ (codomain f → domain f) , ((g ∘ f) ∼ id) × ((f ∘ g) ∼ id)
 
 _≅'_ : Type → Type → Type
-A ≅' B = {!!}
+A ≅' B = Σ f ꞉ (A → B) , is-bijection' f
 ```
 The definition with `Σ` is probably more intuitive, but, as discussed above,
 the definition with a record is often easier to work with,
@@ -115,28 +121,27 @@ Prove that 𝟚 and Bool are isomorphic
 
 ```agda
 Bool-𝟚-isomorphism : Bool ≅ 𝟚
-Bool-𝟚-isomorphism = record { bijection = {!!} ; bijectivity = {!!} }
+Bool-𝟚-isomorphism = Isomorphism f f-is-bijection
  where
   f : Bool → 𝟚
-  f false = {!!}
-  f true  = {!!}
+  f false = 𝟎
+  f true  = 𝟏
 
   g : 𝟚 → Bool
-  g 𝟎 = {!!}
-  g 𝟏 = {!!}
+  g 𝟎 = false
+  g 𝟏 = true
 
   gf : g ∘ f ∼ id
-  gf true  = {!!}
-  gf false = {!!}
+  gf true  = refl _
+  gf false = refl _
 
   fg : f ∘ g ∼ id
-  fg 𝟎 = {!!}
-  fg 𝟏 = {!!}
+  fg 𝟎 = refl _
+  fg 𝟏 = refl _
 
   f-is-bijection : is-bijection f
-  f-is-bijection = record { inverse = {!!} ; η = {!!} ; ε = {!!} }
+  f-is-bijection = record { inverse = g ; η = gf ; ε = fg }
 ```
-
 
 ## Part III - Finite Types
 
@@ -161,8 +166,8 @@ Fin-elim : (A : {n : ℕ} → Fin n → Type)
 Fin-elim A a f = h
  where
   h : {n : ℕ} (k : Fin n) → A k
-  h zero    = {!!}
-  h (suc k) = {!!}
+  h zero    = a
+  h (suc k) = f k (h k)
 ```
 
 We give the other definition of the finite types and introduce some notation.
@@ -188,35 +193,35 @@ Fin-isomorphism : (n : ℕ) → Fin n ≅ Fin' n
 Fin-isomorphism n = record { bijection = f n ; bijectivity = f-is-bijection n }
  where
   f : (n : ℕ) → Fin n → Fin' n
-  f (suc n) zero    = {!!}
-  f (suc n) (suc k) = {!!}
+  f (suc n) zero    = inl ⋆
+  f (suc n) (suc k) = inr (f n k)
 
   g : (n : ℕ) → Fin' n → Fin n
-  g (suc n) (inl ⋆) = {!!}
-  g (suc n) (inr k) = {!!}
+  g (suc n) (inl ⋆) = zero
+  g (suc n) (inr k) = suc (g n k)
 
   gf : (n : ℕ) → g n ∘ f n ∼ id
-  gf (suc n) zero    = {!!}
+  gf (suc n) zero    = refl zero
   gf (suc n) (suc k) = γ
    where
     IH : g n (f n k) ≡ k
     IH = gf n k
 
-    γ = g (suc n) (f (suc n) (suc k)) ≡⟨ {!!} ⟩
-        g (suc n) (suc' (f n k))      ≡⟨ {!!} ⟩
-        suc (g n (f n k))             ≡⟨ {!!} ⟩
+    γ = g (suc n) (f (suc n) (suc k)) ≡⟨ refl _ ⟩
+        g (suc n) (suc' (f n k))      ≡⟨ refl _ ⟩
+        suc (g n (f n k))             ≡⟨ ap suc IH ⟩
         suc k                         ∎
 
   fg : (n : ℕ) → f n ∘ g n ∼ id
-  fg (suc n) (inl ⋆) = {!!}
+  fg (suc n) (inl ⋆) = refl (inl ⋆)
   fg (suc n) (inr k) = γ
    where
     IH : f n (g n k) ≡ k
     IH = fg n k
 
-    γ = f (suc n) (g (suc n) (suc' k)) ≡⟨ {!!} ⟩
-        f (suc n) (suc (g n k))        ≡⟨ {!!} ⟩
-        suc' (f n (g n k))             ≡⟨ {!!} ⟩
+    γ = f (suc n) (g (suc n) (suc' k)) ≡⟨ refl _ ⟩
+        f (suc n) (suc (g n k))        ≡⟨ refl _ ⟩
+        suc' (f n (g n k))             ≡⟨ ap suc' IH ⟩
         suc' k                         ∎
 
   f-is-bijection : (n : ℕ) → is-bijection (f n)
@@ -234,9 +239,9 @@ Give the recursive definition of the less than or equals relation on the natural
 
 ```agda
 _≤₁_ : ℕ → ℕ → Type
-0     ≤₁ y     = {!!}
-suc x ≤₁ 0     = {!!}
-suc x ≤₁ suc y = {!!}
+0     ≤₁ y     = 𝟙
+suc x ≤₁ 0     = 𝟘
+suc x ≤₁ suc y = x ≤₁ y
 ```
 
 ### Exercise 7 (⋆)
@@ -247,13 +252,13 @@ Translate this definition into HoTT.
 
 ```agda
 is-lower-bound : (P : ℕ → Type) (n : ℕ) → Type
-is-lower-bound P n = {!!}
+is-lower-bound P n = (m : ℕ) → (P(m) → n ≤₁ m)
 ```
 
 We define the type of minimal elements of a type family over the naturals.
 ```agda
 minimal-element : (P : ℕ → Type) → Type
-minimal-element P = Σ n ꞉ ℕ , (P n) × (is-lower-bound P n)
+minimal-element P = Σ n ꞉ ℕ , ((P n) × (is-lower-bound P n))
 ```
 
 ### Exercise 8 (⋆)
@@ -261,7 +266,8 @@ minimal-element P = Σ n ꞉ ℕ , (P n) × (is-lower-bound P n)
 Prove that all numbers are at least as large as zero.
 ```agda
 leq-zero : (n : ℕ) → 0 ≤₁ n
-leq-zero n = {!!}
+leq-zero zero = ⋆
+leq-zero (suc n) = ⋆
 ```
 
 
@@ -297,7 +303,9 @@ is-minimal-element-suc :
   (m : ℕ) (pm : P (suc m))
   (is-lower-bound-m : is-lower-bound (λ x → P (suc x)) m) →
   ¬ (P 0) → is-lower-bound P (suc m)
-is-minimal-element-suc P d m pm is-lower-bound neg-p0 = {!   !}
+is-minimal-element-suc P d m pm is-lower-bound-m neg-p0 0 p0 = neg-p0 p0
+is-minimal-element-suc P d 0 pm is-lower-bound-m neg-p0 (suc n) psuccn = ⋆
+is-minimal-element-suc P d (suc m) pm is-lower-bound-m neg-p0 (suc n) psuccn = {!!}
 ```
 
 ### Exercise 10 (🌶)
@@ -321,7 +329,7 @@ well-ordering-principle-suc P d n p (inr neg-p0) (m , (pm , is-min-m)) = {!!}
 Use the previous two lemmas to prove the well-ordering principle
 ```agda
 well-ordering-principle : (P : ℕ → Type) → (d : is-decidable-predicate P) → (n : ℕ) → P n → minimal-element P
-well-ordering-principle P d 0 p = {!!}
+well-ordering-principle P d 0 p = {!well-ordering-principle-suc!}
 well-ordering-principle P d (suc n) p = well-ordering-principle-suc P d n p (d 0) {!!}
 ```
 
@@ -343,7 +351,6 @@ is-zero-well-ordering-principle :
   (n : ℕ) → (pn : P n) →
   P 0 →
   pr₁ (well-ordering-principle P d n pn) ≡ 0
-is-zero-well-ordering-principle P d zero p p0 = {!   !}
-is-zero-well-ordering-principle P d (suc m) pm =
-  is-zero-well-ordering-principle-suc P d m pm (d 0) {!!}
+is-zero-well-ordering-principle P d 0 p p0 = refl 0
+is-zero-well-ordering-principle P d (suc m) pm = is-zero-well-ordering-principle-suc P d m pm (d 0) {!!}
 ```
