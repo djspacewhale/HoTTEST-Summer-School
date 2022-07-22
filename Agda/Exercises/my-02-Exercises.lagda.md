@@ -39,6 +39,23 @@ uncurry f (a , b) = f a b
 
 curry : {A B X : Type} → (A × B → X) → (A → B → X)
 curry f a b = f (a , b)
+
+retr : {A B : Type} → (A → B) → Type
+retr {A} {B} f = Σ g ꞉ (B → A) , ((x : A) → g (f x) ≡ x)
+
+retr-is-inj : {A B : Type} → ((f : A → B) → (p : retr f) → (a b : A) → ((f a ≡ f b) → (a ≡ b)))
+retr-is-inj f (g , h) a b p = a-to-b where
+  a-to-gfa : g (f a) ≡ a
+  a-to-gfa = h a
+
+  b-to-gfb : g (f b) ≡ b
+  b-to-gfb = h b
+
+  gfagfb : g (f a) ≡ g (f b)
+  gfagfb = ap g p
+
+  a-to-b : a ≡ b
+  a-to-b = trans (sym a-to-gfa) (trans gfagfb b-to-gfb)
 ```
 You might know these functions from programming e.g. in Haskell.
 But what do they say under the propositions-as-types interpretation?
