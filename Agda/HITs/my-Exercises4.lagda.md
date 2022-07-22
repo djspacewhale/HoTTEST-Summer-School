@@ -26,6 +26,23 @@ homotopy2 = (loop ∙ ! loop) ∙ loop ≡⟨ {!!} ⟩
             loop ∙ (! loop ∙ loop) ≡⟨ {!!} ⟩
             loop ∙ refl _          ≡⟨ ∙unit-r loop ⟩
             loop ∎
+
+is-conj : {A : Type} → (a : A) → (p q : (a ≡ a)) → Type
+is-conj a p q = Σ r ꞉ (a ≡ a) , p ≡ (! r) ∙ q ∙ r
+
+conj1 : {A : Type} (a : A) (p q : a ≡ a) → is-conj a p q → p ≡ q
+conj1 a .(! r ∙ q ∙ r) q (r , refl .(! r ∙ q ∙ r)) = {!!}
+
+conj2 : {A : Type} (a : A) (p q : (a ≡ a)) → ((p ≡ q) → is-conj a p q)
+pr₁ (conj2 a p .p (refl .p)) = p
+pr₂ (conj2 a p .p (refl .p)) = lemma where
+  lemma1 : ! p ∙ p ∙ p ≡ p
+  lemma1 = ! p ∙ p ∙ p ≡⟨ ap (λ x → x ∙ p) (!-inv-l p) ⟩
+           refl _ ∙ p  ≡⟨ ∙unit-l p ⟩
+           p ∎
+
+  lemma : p ≡ ! p ∙ p ∙ p
+  lemma = ! lemma1
 ```
 
 (Harder exercise (🌶️): give a path between homotopy1 and
