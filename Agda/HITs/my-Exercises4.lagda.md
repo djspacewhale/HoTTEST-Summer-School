@@ -91,7 +91,7 @@ ap-inv-dist : {A B : Type} {a b c : A} (p : a ≡ b) (q : b ≡ c) (f : A → B)
 ap-inv-dist (refl _) (refl _) f = refl _
 
 double-!loop : ap double (! loop) ≡ ! loop ∙ ! loop
-double-!loop = ap-inv-dist {!!} {!!} double
+double-!loop = ap-inv-dist _ _ double
 ```
 
 (⋆) Define a function invert : S1 → S1 such that (ap invert) inverts a path
@@ -118,8 +118,20 @@ to-from-base = S1-rec (refl _) (refl _) base
 (⋆⋆⋆) 
 
 ```
+lem1 : ap to loop ≡ east ∙ ! west
+lem1 = S1-rec-loop north (east ∙ ! west)
+
+lem2 : ap from (east ∙ ! west) ≡ loop
+lem2 = ap from (east ∙ ! west)         ≡⟨ ap-∙ _ _ ⟩
+       ap from east ∙ ap from (! west) ≡⟨ ap (λ x → x ∙ ap from (! west)) (Circle2-rec-east base base (refl base) loop) ⟩
+       loop ∙ ap from (! west)         ≡⟨ ap (λ x → loop ∙ x) (ap-inv west _) ⟩
+       loop ∙ (! (ap from west))       ≡⟨ ap (λ x → loop ∙ ! x) (Circle2-rec-west _ _ _ _) ⟩
+       loop ∎
+
 to-from-loop : ap from (ap to loop) ≡ loop
-to-from-loop = S1-rec {!!} {!!} base
+to-from-loop = ap from (ap to loop)    ≡⟨ ap (λ x → ap from x) lem1 ⟩
+               ap from (east ∙ ! west) ≡⟨ lem2 ⟩
+               loop ∎
 ```
 
 Note: the problems below here are progressively more optional, so if you
@@ -140,14 +152,14 @@ paths in product types compose (⋆⋆⋆):
 compose-pair≡ : {A B : Type} {x1 x2 x3 : A} {y1 y2 y3 : B}
                 (p12 : x1 ≡ x2) (p23 : x2 ≡ x3)
                 (q12 : y1 ≡ y2) (q23 : y2 ≡ y3)
-              → ((pair≡ p12 q12) ∙ (pair≡ p23 q23)) ≡ {!!} [ (x1 , y1) ≡ (x3 , y3) [ A × B ] ]
-compose-pair≡ = {!!}
+              → ((pair≡ p12 q12) ∙ (pair≡ p23 q23)) ≡ pair≡ (p12 ∙ p23) (q12 ∙ q23) [ (x1 , y1) ≡ (x3 , y3) [ A × B ] ]
+compose-pair≡ p12 p23 q12 q23 = {!!}
 ```
 
 (🌶️)
 ```
 torus-to-circles : Torus → S1 × S1
-torus-to-circles x = T-rec ({!!} , {!!}) {!!} {!!} {!!} x
+torus-to-circles = T-rec (base , base) {!!} {!!} {!!}
 ```
 
 # Suspensions (🌶️)

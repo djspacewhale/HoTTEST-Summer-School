@@ -41,10 +41,24 @@ Prove that rev is an equivalence.  Hint: you will need to state and prove
 one new generalized "path algebra" lemma and to use one of the lemmas from
 the "Functions are group homomorphism" section of Lecture 4's exercises.  
 ```agda
+func-comp : {A B C : Type} (a : A) (f : A → B) (g : B → C) → g (f a) ≡ (g ∘ f) a
+func-comp a f g = refl _
+
+invol : {A : Type} {a b : A} (p : a ≡ b) → ! (! p) ≡ p
+invol (refl _) = refl _
+
 rev-equiv : is-equiv rev
-rev-equiv = Inverse rev {!rf!} rev {!rf!} where
+rev-equiv = Inverse rev rf rev rf where
   rf : (rev ∘ rev) ∼ id
-  rf x = S1-rec {!!} {!!} x
+  rf = S1-elim (λ x → _) (refl _)
+    (PathOver-roundtrip≡ rev rev loop hyp) where
+      hyp : refl (rev (rev base)) ∙ ap rev (ap rev loop) ≡ loop
+      hyp = refl (rev (rev base)) ∙ ap rev (ap rev loop) ≡⟨ ∙unit-l _ ⟩
+            ap rev (ap rev loop)                         ≡⟨ ap (λ x → ap rev x) (S1-rec-loop base (! loop)) ⟩
+            ap rev (! loop)                              ≡⟨ ap-! loop ⟩
+            ! (ap rev loop)                              ≡⟨ ap (λ x → ! x) (S1-rec-loop base (! loop)) ⟩
+            ! (! loop)                                   ≡⟨ invol loop ⟩
+            loop ∎
 ```
 
 
@@ -64,12 +78,17 @@ PathOver-path≡ : ∀ {A B : Type} {g : A → B} {f : A → B}
                           {a a' : A} {p : a ≡ a'}
                           {q : (f a) ≡ (g a)}
                           {r : (f a') ≡ (g a')}
-                        → {!!}
+                        → q ∙ (ap g p) ≡ ap f p ∙ r
                         → q ≡ r [ (\ x → (f x) ≡ (g x)) ↓ p ]
-PathOver-path≡ {A}{B}{g}{f}{a}{a'}{p}{q}{r} h = {!!}
+PathOver-path≡ {A} {B} {g} {f} {a} {.a} {refl .a} {.(ap f (refl a) ∙ r)} {r} (refl .(ap f (refl a) ∙ r)) = path-to-pathover (∙unit-l r)
 
 circles-to-torus : S1 → (S1 → Torus)
-circles-to-torus = {!!}
+circles-to-torus = S1-rec (S1-rec baseT pT)  (λ≡ (S1-elim _ qT (PathOver-path≡ hyp))) where
+  hyp : qT ∙ ap (λ z → S1-rec baseT pT z) loop ≡ ap (λ z → S1-rec baseT pT z) loop ∙ qT
+  hyp = qT ∙ ap (λ z → S1-rec baseT pT z) loop ≡⟨ ap (λ x → qT ∙ x) (S1-rec-loop baseT pT) ⟩
+        qT ∙ pT                                ≡⟨ ! sT ⟩
+        pT ∙ qT                                ≡⟨ ap (λ x → x ∙ qT) (! (S1-rec-loop baseT pT)) ⟩
+        ap (λ z → S1-rec baseT pT z) loop ∙ qT ∎
 
 circles-to-torus' : S1 × S1 → Torus
 circles-to-torus' (x , y) = circles-to-torus x y
@@ -103,7 +122,7 @@ ap-∘ : ∀ {l1 l2 l3 : Level} {A : Type l1} {B : Type l2} {C : Type l3}
        {a a' : A}
        (p : a ≡ a')
      → ap (g ∘ f) p ≡ ap g (ap f p)
-ap-∘ f g (refl _) = {!!}
+ap-∘ f g (refl _) = ap (λ x → refl _) (refl _)
 ```
 
 (⋆⋆) Suppose we have a curried function f : S1 → A → B.  Under the
@@ -134,12 +153,12 @@ PathOver-endo≡ : ∀ {A : Type} {f : A → A}
                  {a a' : A} {p : a ≡ a'}
                  {q : (f a) ≡ a}
                  {r : (f a') ≡ a'}
-               → {!!}
+               → q ∙ p ∙ ! r ≡ ap f p
                → q ≡ r [ (\ x → f x ≡ x) ↓ p ]
 PathOver-endo≡ {p = (refl _)} {q = q} {r} h = {!!}
 
 mult-unit-r : (x : S1) → mult x base ≡ x
-mult-unit-r = {!!}
+mult-unit-r x = {!!}
 ```
 
 # Suspensions and the 2-point circle
