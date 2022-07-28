@@ -22,8 +22,8 @@ homotopy1 = (loop ∙ ! loop) ∙ loop ≡⟨ ap (λ x → x ∙ loop) (!-inv-r 
             loop ∎
 
 homotopy2 : (loop ∙ ! loop) ∙ loop ≡ loop
-homotopy2 = (loop ∙ ! loop) ∙ loop ≡⟨ {!!} ⟩
-            loop ∙ (! loop ∙ loop) ≡⟨ {!!} ⟩
+homotopy2 = (loop ∙ ! loop) ∙ loop ≡⟨ ∙assoc _ _ _ ⟩
+            loop ∙ (! loop ∙ loop) ≡⟨ ap (λ x → loop ∙ x) (!-inv-l loop) ⟩
             loop ∙ refl _          ≡⟨ ∙unit-r loop ⟩
             loop ∎
 ```
@@ -78,15 +78,20 @@ path-between-paths-between-paths = {!!}
 (⋆⋆) State and prove a general lemma about what ap of a function on the
 inverse of a path (! p) does (see ap-∙ for inspiration).  
 
-State and prove a general lemma about what ! (p ∙ q) is.  
+State and prove a general lemma about what ! (p ∙ q) is.
 
 Use them to prove that the double function takes loop-inverse to
 loop-inverse concatenated with itself.
 
 ```agda
+ap-inv : {A B : Type} {a b : A} (p : a ≡ b) (f : A → B) → ap f (! p) ≡ ! (ap f p)
+ap-inv (refl _) f = refl _
+
+ap-inv-dist : {A B : Type} {a b c : A} (p : a ≡ b) (q : b ≡ c) (f : A → B) → ap f (! (p ∙ q)) ≡ ! (ap f q) ∙ ! (ap f p)
+ap-inv-dist (refl _) (refl _) f = refl _
 
 double-!loop : ap double (! loop) ≡ ! loop ∙ ! loop
-double-!loop = {!!}
+double-!loop = ap-inv-dist {!!} {!!} double
 ```
 
 (⋆) Define a function invert : S1 → S1 such that (ap invert) inverts a path
@@ -107,14 +112,14 @@ is homotopic to the identity on base and loop:
 
 ```agda
 to-from-base : from (to base) ≡ base
-to-from-base = {!!}
+to-from-base = S1-rec (refl _) (refl _) base
 ```
 
 (⋆⋆⋆) 
 
 ```
 to-from-loop : ap from (ap to loop) ≡ loop
-to-from-loop = {!!}
+to-from-loop = S1-rec {!!} {!!} base
 ```
 
 Note: the problems below here are progressively more optional, so if you
@@ -142,7 +147,7 @@ compose-pair≡ = {!!}
 (🌶️)
 ```
 torus-to-circles : Torus → S1 × S1
-torus-to-circles = {!!}
+torus-to-circles x = T-rec ({!!} , {!!}) {!!} {!!} {!!} x
 ```
 
 # Suspensions (🌶️)
@@ -154,10 +159,13 @@ prove that such functions are inverse yet.
 
 ```agda
 c2s : Circle2 → Susp Bool
-c2s = {!!}
+c2s x = Circle2-rec northS southS (merid true) (merid false) x
 
-s2c : Susp {!!} → Circle2
-s2c = {!!}
+s2c : Susp Bool → Circle2
+s2c x = Susp-rec north south paths x where
+  paths : Bool → north ≡ south
+  paths true = west
+  paths false = east
 ```
 
 Suspension is a functor from types, which means that it acts on
@@ -165,7 +173,7 @@ functions as well as types.  Define the action of Susp on functions:
 
 ```agda
 susp-func : {X Y : Type} → (f : X → Y) → Susp X → Susp Y
-susp-func f = {!!} 
+susp-func f x = Susp-rec northS southS (λ y → merid (f y)) x
 ```
 
 To really prove that Susp is a functor, we should check that this action
@@ -183,12 +191,12 @@ inverse yet.
 
 ```agda
 SuspFromPush : Type → Type
-SuspFromPush A = {!!}
+SuspFromPush A = Pushout A 𝟙 𝟙 (λ x → ⋆) λ x → ⋆
 
 s2p : (A : Type) → Susp A → SuspFromPush A
-s2p A = {!!}
+s2p A x = Susp-rec (inl ⋆) (inr ⋆) (λ y → glue y) x
 
 p2s : (A : Type) → SuspFromPush A → Susp A
-p2s A = {!!}
+p2s A x = Push-rec (λ y → northS) (λ y → southS) (λ c → merid c) x
 ```
 
