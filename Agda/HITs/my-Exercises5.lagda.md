@@ -141,7 +141,7 @@ can reduce like this:
 ```agda
 S1-rec-loop-1 : ∀ {A B : Type} {f : A → B} {h : f ≡ f} {a : A}
                      →  ap (\ x → S1-rec f h x a) loop ≡ app≡ h a
-S1-rec-loop-1 {A}{B}{f}{h}{a} = {!!}
+S1-rec-loop-1 {A}{B}{f}{h}{a} = {!path-to-PathOver!}
 ```
 Prove this reduction using ap-∘ and the reduction rule for S1-rec on the loop.  
 
