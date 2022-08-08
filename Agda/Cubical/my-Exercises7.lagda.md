@@ -23,7 +23,7 @@ please make a copy of this file to work in, so that it doesn't get overwritten
 ```agda
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 
-module my-Exercises7 where
+module Exercises7 where
 
 open import cubical-prelude
 open import Lecture7-notes
@@ -72,51 +72,34 @@ inPropCtr : (x : A) → isProp A → isContr A
 inPropCtr x h = x , λ y i → h x y i
 ```
 
-### Exercise 4 (★★)
-
-We could have stated isProp as follows:
-
-```agda
-isProp' : Type ℓ → Type ℓ
-isProp' A = (x y : A) → isContr (x ≡ y)
-```
-
-Prove that isProp' A implies isProp A and vice versa.
-Hint: for one direction you need path composition `_·_`, which one?
-
-```agda
-prop'ToProp : isProp' A → isProp A
-prop'ToProp h x y = {!!}
-```
-
-### Exercise 5 (★)
+### Exercise 4 (★)
 
 Prove
 
 ```agda
 isPropΠ : (h : (x : A) → isProp (B x)) → isProp ((x : A) → B x)
-isPropΠ = {!!}
+isPropΠ h x y = λ i z → h z (x z) (y z) i
 ```
 
-### Exercise 6 (★)
+### Exercise 5 (★)
 
 Prove the inverse of `funExt` (sometimes called `happly`):
 
 ```agda
 funExt⁻ : {f g : (x : A) → B x} → f ≡ g → ((x : A) → f x ≡ g x)
-funExt⁻  = {!!}
+funExt⁻ p x i = p i x
 ```
 
-### Exercise 7 (★★)
+### Exercise 6 (★★)
 
 Use funExt⁻ to prove isSetΠ:
 
 ```agda
 isSetΠ : (h : (x : A) → isSet (B x)) → isSet ((x : A) → B x)
-isSetΠ = {!!}
+isSetΠ h x y p q = λ i j z → h z (x z) (y z) (funExt⁻ p z) (funExt⁻ q z) i j
 ```
 
-### Exercise 8 (★★★): alternative contractibility of singletons
+### Exercise 7 (★★★): alternative contractibility of singletons
 
 We could have defined the type of singletons as follows
 
@@ -130,11 +113,12 @@ Prove the corresponding version of contractibility of singetons for
 
 ```agda
 isContrSingl' : (x : A) → isContr (singl' x)
-isContrSingl' x = {!!}
+pr₁ (isContrSingl' x) = x , λ i → x
+pr₂ (isContrSingl' x) (y , h) i = sym h i , λ j → {!!}
 ```
 
 ## Part III: Equality in Σ-types
-### Exercise 9 (★★)
+### Exercise 8 (★★)
 
 Having the primitive notion of equality be heterogeneous is an
 easily overlooked, but very important, strength of cubical type
@@ -148,17 +132,20 @@ module _ {A : Type ℓ} {B : A → Type ℓ'} {x y : Σ A B} where
 
   ΣPathP : Σ p ꞉ pr₁ x ≡ pr₁ y , PathP (λ i → B (p i)) (pr₂ x) (pr₂ y)
          → x ≡ y
-  ΣPathP = {!!}
+  ΣPathP (p , fiber) i = p i , fiber i
 
   PathPΣ : x ≡ y
          → Σ p ꞉ pr₁ x ≡ pr₁ y , PathP (λ i → B (p i)) (pr₂ x) (pr₂ y)
-  PathPΣ = {!!}
+  pr₁ (PathPΣ x) i = pr₁ (x i)
+  pr₂ (PathPΣ x) i = {!!}
 
   ΣPathP-PathPΣ : ∀ p → PathPΣ (ΣPathP p) ≡ p
-  ΣPathP-PathPΣ = {!!}
+  pr₁ (ΣPathP-PathPΣ (p , fiber) i) j = p j
+  pr₂ (ΣPathP-PathPΣ (p , fiber) i) j = fiber j
 
   PathPΣ-ΣPathP : ∀ p → ΣPathP (PathPΣ p) ≡ p
-  PathPΣ-ΣPathP = {!!}
+  pr₁ (PathPΣ-ΣPathP p i j) = pr₁ (p j)
+  pr₂ (PathPΣ-ΣPathP p i j) = {!!}
 ```
 
 If one looks carefully the proof of prf in Lecture 7 uses ΣPathP
@@ -172,6 +159,15 @@ complicated reasoning about transport.
 Now we want prove some identity of HITs analogous to `Torus ≡ S¹ × S¹`
 Hint: you can just `isoToPath` in all of them.
 
+
+### Exercise 9 (★★)
+
+We saw two definitions of the torus:
+`Torus` having a dependent path constructor `square`
+and `Torus'` with a path constructor `square` that involves composition.
+
+Using these two ideas, define the *Klein bottle* in two different ways.
+
 ### Exercise 10 (★★★)
 
 Prove the following facts about suspensions:
@@ -179,10 +175,46 @@ Prove the following facts about suspensions:
 ```agda
 
 suspUnitChar : Susp Unit ≡ Interval
-suspUnitChar = {!!}
+suspUnitChar = isoToPath (iso fun inv sec ret) where
+  fun : Susp Unit → Interval
+  fun north = zero
+  fun south = one
+  fun (merid a i) = seg i
+
+  inv : Interval → Susp Unit
+  inv zero = north
+  inv one = south
+  inv (seg i) = merid ⋆ i
+
+  sec : section fun inv
+  sec zero = refl
+  sec one = refl
+  sec (seg i) = refl
+
+  ret : retract fun inv
+  ret north = refl
+  ret south = refl
+  ret (merid a i) = refl
 
 suspBoolChar : Susp Bool ≡ S¹
-suspBoolChar = {!!}
+suspBoolChar = isoToPath (iso fun inv sec ret) where
+  fun : Susp Bool → S¹
+  fun north = base
+  fun south = base
+  fun (merid a i) = loop i
+
+  inv : S¹ → Susp Bool
+  inv base = north
+  inv (loop i) = (merid true ∙ sym (merid false)) i
+
+  sec : section fun inv
+  sec base = refl
+  sec (loop i) = {!!}
+
+  ret : retract fun inv
+  ret north = refl
+  ret south = merid true
+  ret (merid a i) = {!!}
 
 ```
 
@@ -190,3 +222,35 @@ suspBoolChar = {!!}
 ### Exercise 11 (★★★)
 
 Define suspension using the Pushout HIT and prove that it's equal to Susp.
+
+```agda
+Susp' : (A : Type) → Type
+Susp' A = Pushout f g where
+  f : A → Unit
+  f = λ x → ⋆
+
+  g : A → Unit
+  g = λ x → ⋆
+
+Susp≡Susp' : {A : Type} → Susp A ≡ Susp' A
+Susp≡Susp' = isoToPath (iso fun inv sec ret) where
+  fun : Susp A → Susp' A
+  fun north = inl ⋆
+  fun south = inr ⋆
+  fun (merid a i) = push a i
+
+  inv : Susp' A → Susp A
+  inv (inl x) = north
+  inv (inr x) = south
+  inv (push a i) = merid a i
+
+  sec : section fun inv
+  sec (inl x) = λ i → inl ⋆
+  sec (inr x) = λ i → inr ⋆
+  sec (push a i) = refl
+
+  ret : retract fun inv
+  ret north = refl
+  ret south = refl
+  ret (merid a i) = refl
+```
