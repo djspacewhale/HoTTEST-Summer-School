@@ -23,7 +23,7 @@ please make a copy of this file to work in, so that it doesn't get overwritten
 ```agda
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 
-module Exercises7 where
+module my-Exercises7 where
 
 open import cubical-prelude
 open import Lecture7-notes
@@ -170,13 +170,35 @@ data Klein : Type where
   base : Klein
   line1 : base ≡ base
   line2 : base ≡ base
-  square : {!PathP (λ i → line1 (~ i) ≡ line1 i) line2 line2!}
+  square : {!!}
 
 data Klein' : Type where
   base : Klein'
   line1 : base ≡ base
   line2 : base ≡ base
-  square : {!(((sym line1) ∙ line2) ∙ line1) ≡ line2!}
+  square : {!!}
+
+data ||_|| (A : Type) : Type where
+  squash : A → || A ||
+  isP : (x y : || A ||) → x ≡ y
+
+is-surj : {A B : Type} → (A → B) → Type
+is-surj {A} {B} f = (b : B) → || (Σ A (λ a → f a ≡ b)) ||
+
+lawvere : {A B : Type} → Type
+lawvere {A} {B} = || Σ (A → (A → B)) (λ f → is-surj f) || → ((h : (B → B)) → || (Σ B (λ b → h b ≡ b)) ||)
+
+lemma : {A : Type} {B : A → Type} → ((a : A) → || (B a) ||) → || ((a : A) → B a) ||
+lemma {A} {B} x = squash λ a → {!!}
+
+lawvPf : {A B : Type} → lawvere
+lawvPf {A} {B} (squash (f , hyp)) h = squash (b , hb) where
+  b : B
+  b = h (f ? {!!})
+
+  hb : h b ≡ b
+  hb = {!!}
+lawvPf (isP x y i) h = isP (lawvPf x h) (lawvPf y h) i
 ```
 
 ### Exercise 10 (★★)
@@ -249,7 +271,24 @@ The goal of this exercise is to prove
 
 ```agda
 suspBoolChar : Susp Bool ≡ S¹
-suspBoolChar = {!!}
+suspBoolChar = isoToPath (iso fun inv sec ret) where
+  fun : Susp Bool → S¹
+  fun north = base
+  fun south = base
+  fun (merid a i) = loop i
+
+  inv : S¹ → Susp Bool
+  inv base = north
+  inv (loop i) = ((merid true) ∙ (sym (merid false))) i
+
+  sec : section fun inv
+  sec base = refl
+  sec (loop i) = {!!}
+
+  ret : retract fun inv
+  ret north = refl
+  ret south = merid true
+  ret (merid a i) = {!!}
 ```
 
 For the map `Susp Bool → S¹`, we have to specify the behavior of two
